@@ -1,2 +1,32 @@
+import RPi.GPIO as IO
+import time
 
-print ("hello world")
+IO.setmode(IO.BOARD)
+
+switch = 7
+ledr = 11
+ledy = 13
+ledg = 15
+leds = [ledr, ledy, ledg]
+ledid = 1
+
+IO.setup(switch, IO.IN, pull_up_down=IO.PUD_DOWN)
+for led in leds:
+	IO.setup(led, IO.OUT)
+
+def reset():
+	for led in leds:
+		IO.output(led, False)
+
+while True:
+	input_state = IO.input(switch)
+	if input_state == False:
+		reset()
+		IO.output(leds[ledid], True)
+		time.sleep(0.2)
+		if ledid == len(leds)-1:
+			ledid = 0
+		else:
+			ledid += 1
+
+IO.cleanup()

@@ -1,5 +1,7 @@
 import socket
 import threading
+import time
+import os
 
 class Transmit(threading.Thread):
 
@@ -9,9 +11,14 @@ class Transmit(threading.Thread):
         self.host = host
         self.port = port
         self.sender = sender
+        # default parameters
+        self.filename = "data.txt"
+
+    def set_filename(self, filename):
+        self.filename = filename
 
     def run(self):
-        if self.sender == True:
+        if self.sender:
             self.send()
         else:
             self.receive()
@@ -19,10 +26,18 @@ class Transmit(threading.Thread):
     def receive(self):
         s = socket.socket()
 
-        s.connect((self.host, self.port))
+        while True:
+            connected = True
+            try:
+                s.connect((self.host, self.port))
+            except:
+                connected = False
+                time.sleep(1)
+            if connected:
+                break
         s.send("Hello server")
 
-        with open('received_file', 'wb') as f:
+        with open(self.filename, 'wb') as f:
             print('file opened')
             while True:
                 print('receiving data')
@@ -37,6 +52,15 @@ class Transmit(threading.Thread):
         s.close()
         print('connection closed')
 
+        if (hasattr(self, "client")):
+            self.client.tell(True)
+
+    def execute(self):
+        print("executing ...")
+        os.system("python " + self.filename)
+        if (hasattr(self, "client")):
+            self.client.tell(False)
+
     def send(self):
         s = socket.socket()
         s.bind((self.host, self.port))
@@ -50,8 +74,7 @@ class Transmit(threading.Thread):
             data = conn.recv(1024)
             print('received ', repr(data))
 
-            filename="data.txt"
-            f = open(filename, 'rb')
+            f = open(self.filename, 'rb')
             l = f.read(1024)
             while(l):
                 conn.send(l)
@@ -59,7 +82,7 @@ class Transmit(threading.Thread):
                 l = f.read(1024)
             f.close()
 
-            print('done')
-            conn.send("done")
-            conn.close()
+            break;
+        print('done')
+        conn.close()
 
