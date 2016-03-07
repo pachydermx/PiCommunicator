@@ -4,12 +4,25 @@ import socket
 host = "localhost"
 port = 8888
 
-c = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-c.bind((host, port))
+s = socket.socket()
 
-while True:
-    recv_msg, addr = c.recvfrom(1024)
-    print recv_msg, addr
+s.connect((host, port))
+s.send("Hello server")
+
+with open('received_file', 'wb') as f:
+    print('file opened')
+    while True:
+        print('receiving data')
+        data = s.recv(1024)
+        print('data=%s', (data))
+        if not data:
+            break;
+        f.write(data)
+
+f.close()
+print('successed')
+s.close()
+print('connection closed')
 
 
 
